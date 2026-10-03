@@ -1,0 +1,26 @@
+[project]
+name = "payload"
+version = "0.1.0"
+description = "An offensive AI harness that runs entirely on local hardware"
+requires-python = ">=3.11"
+
+# No required dependencies, and that is load-bearing: the run phase
+# must work on an air-gapped host where no package manager has ever run.
+dependencies = []
+
+[project.optional-dependencies]
+# Accelerators, none of which change behaviour.
+#   numpy   - faster corpus search once past a few thousand chunks
+#   r2pipe  - scripted radare2 access; the CLI is used without it
+fast = ["numpy>=1.24"]
+r2 = ["r2pipe>=1.8"]
+
+[project.scripts]
+payload = "payload.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["payload*"]

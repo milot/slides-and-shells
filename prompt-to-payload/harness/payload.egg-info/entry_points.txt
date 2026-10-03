@@ -1,0 +1,2 @@
+[console_scripts]
+payload = payload.cli:main

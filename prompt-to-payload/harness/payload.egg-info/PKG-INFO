@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: payload
+Version: 0.1.0
+Summary: An offensive AI harness that runs entirely on local hardware
+Requires-Python: >=3.11
+Provides-Extra: fast
+Requires-Dist: numpy>=1.24; extra == "fast"
+Provides-Extra: r2
+Requires-Dist: r2pipe>=1.8; extra == "r2"

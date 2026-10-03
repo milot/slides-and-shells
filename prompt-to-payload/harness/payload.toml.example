@@ -1,0 +1,44 @@
+# payload configuration
+#
+# Copy to payload.toml and edit. Model names below are placeholders - run
+# `payload doctor` after editing to confirm each role is reachable.
+#
+# Roles, not model names. See docs/MODELS.md for the memory tier matrix and
+# how to collapse these onto one model on a smaller machine.
+
+endpoint = "http://127.0.0.1:11434/v1"
+
+[roles.plan]
+# Reasoning, tool selection, writing findings. The biggest model you can hold.
+model = "REPLACE-ME-reasoning"
+temperature = 0.2
+max_tokens = 4096
+
+[roles.code]
+# Decompiled C, source review, tool syntax. A code specialist beats a larger
+# generalist here, and it is small enough to keep resident alongside one.
+model = "REPLACE-ME-code"
+temperature = 0.1
+max_tokens = 4096
+
+[roles.embed]
+# Corpus and query embeddings. Must stay fixed once a corpus is built:
+# changing it invalidates every stored vector.
+model = "REPLACE-ME-embed"
+
+[paths]
+db = "corpus/corpus.db"
+transcript = "runs/transcript.jsonl"
+artifacts = "runs/artifacts"
+
+[agent]
+# How many model turns before the loop gives up. A local model that has lost
+# the thread will happily call tools forever.
+max_steps = 24
+
+# Tools permitted to run without an interactive prompt. Anything with risk
+# class `touch` or `mutate` is denied unless named here.
+#
+# Empty by default, and worth leaving that way until you have watched the
+# model work on a target you do not mind annoying.
+auto_approve = []

@@ -1,0 +1,22 @@
+# Applies to every talk in this repo.
+
+# Build output
+build/
+dist/
+*.dSYM/
+*.o
+*.so
+*.dylib
+
+# Run output. Transcripts can contain client data, so they never get committed.
+runs/
+
+# Local model configuration, which holds your own model choices
+payload.toml
+
+# Built corpora: large, and rebuildable from their sources
+*.db
+
+__pycache__/
+*.pyc
+.DS_Store

@@ -1,0 +1,44 @@
+# What provisioning fetches.
+#
+# Phase 1 (provision) needs network. Phase 2 (run) needs none, ever.
+#
+# Corpus sources are listed, not vendored. The repo ships the pipeline; the
+# content is fetched onto your machine. That keeps the repo small and avoids
+# redistributing material under licences that are not ours to re-publish.
+# Review this list and cut what you do not want - a smaller, sharper corpus
+# retrieves better than a large indiscriminate one.
+
+[models]
+# Filled in by `provision.sh` after you choose them. Pinned by digest so a
+# rebuild is reproducible and a silently updated tag cannot change results
+# under you.
+#
+#   plan  = { tag = "...", digest = "sha256:..." }
+#   code  = { tag = "...", digest = "sha256:..." }
+#   embed = { tag = "...", digest = "sha256:..." }
+
+[[corpus]]
+name = "local-notes"
+kind = "local"
+path = "corpus/notes"
+note = "Your own material. The highest-value source in this list by a wide margin, because it is the only one written about the environments you actually work in."
+
+# Remote sources are commented out by default. Uncomment what you want, and
+# read the licence before you redistribute any bundle built from it.
+#
+# [[corpus]]
+# name = "payloads"
+# kind = "git"
+# url  = "https://github.com/swisskyrepo/PayloadsAllTheThings"
+# note = "Technique reference. Large; consider --depth 1 and pruning to the sections you use."
+#
+# [[corpus]]
+# name = "gtfobins"
+# kind = "git"
+# url  = "https://github.com/GTFOBins/GTFOBins.github.io"
+# note = "Binary abuse reference. The _gtfobins/ directory is the useful part."
+#
+# [[corpus]]
+# name = "man-pages"
+# kind = "command"
+# note = "Man pages for your own tooling. Offline already, and more accurate than anything a model recalls about flags."

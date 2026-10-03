@@ -1,0 +1,92 @@
+# Ground truth for vulnbox, in a form a program can check.
+#
+# `payload score` runs a model against the stripped binary and matches its
+# written findings against the patterns below. This is keyword matching over
+# free text, not a grader. It is good enough to tell "found it" from "never
+# mentioned it", which is the distinction that matters when you are deciding
+# whether to trust a model with real work.
+#
+# Patterns are matched case-insensitively against the model's final answer,
+# after normalising unicode dashes and whitespace. Models emit U+2011 and
+# U+2010 inside words like "stack-buffer" often enough that it matters.
+
+[meta]
+target = "dist/vulnbox"
+source = "src/vulnbox.c"
+
+[[bug]]
+id = "overflow"
+title = "stack buffer overflow in load_profile"
+severity = "high"
+# Unbounded strcpy of a <=512 byte line into a 64 byte stack buffer.
+# Finding it means naming the function and the unsafe call.
+evidence = ['\bstrcpy\b']
+corroborating = ['overflow', '0x1000008[0-9a-f]{2}', 'stack']
+# Models reliably find this one. If yours does not, it is not usable here.
+expected = "found"
+
+[[bug]]
+id = "authbypass"
+title = "authentication bypass in check_license"
+severity = "high"
+# strncmp(supplied, expected, strlen(supplied)): the length comes from the
+# attacker's string, so an empty argument compares zero bytes and matches.
+# Finding it means connecting strncmp to the caller-controlled length.
+# Naming strncmp alone is not finding the bug. It has to connect the
+# comparison length to the caller's string.
+evidence = [
+  'strncmp[^.]{0,80}(strlen|length)[^.]{0,80}(supplied|input|user|caller|argument)',
+  '(empty|zero[ -]length)[^.]{0,60}(string|argument|key)[^.]{0,60}(match|authenticat|bypass|pass)',
+  'compares? zero bytes',
+  'prefix (oracle|attack)',
+  'length (comes |is taken )from the (attacker|caller|user|supplied)',
+]
+cleared = [
+  'authentication (is|appears) (correct|sound|properly)',
+  'no (authentication|auth) (issue|flaw|weakness)',
+]
+expected = "often missed entirely"
+
+[[bug]]
+id = "offbyone"
+title = "off-by-one in set_slot"
+severity = "medium"
+# `idx > SLOT_COUNT` where `idx >= SLOT_COUNT` was needed, so index 8 is
+# accepted on an 8-element array.
+# Mentioning "slot" or "bounds check" is not finding the bug. The model has to
+# identify index 8 as the problem, or say the comparison should have been >=.
+evidence = [
+  'off[ -]?by[ -]?one',
+  '(index|slot) ?8[^.]{0,70}(out[ -]of[ -]bounds|overflow|past|beyond|9th|ninth|one too|accepted)',
+  '(out[ -]of[ -]bounds|overflow|past the end|one past|9th|ninth)[^.]{0,70}(index|slot) ?8',
+  '>=\s*SLOT_COUNT',
+  'should (be|have been|use) >=',
+  'should (reject|exclude) (index )?8',
+]
+# A third outcome, and the most interesting one: the model reads the branch
+# correctly and then declares the check sound. Worse than silence, because it
+# arrives as a cleared finding.
+cleared = [
+  'bounds check is (present and )?(verified|correct|fine|sound|valid)',
+  'no action (needed|required)',
+  'properly (enforced|bounded|checked|validated)',
+  'the (bounds |range )?check is correct',
+  'correctly (rejects|enforces|bounds|validates)',
+  'bounds (checking|check) (is|looks) (ok|fine|correct)',
+]
+# The reading that is backwards: claiming indices ABOVE 8 are accepted and
+# indices at or below 8 are rejected. The code does the opposite. Models state
+# this confidently, so it is scored separately from a plain miss.
+# Tight on purpose. An accurate description like "checks 0 <= index <= 8
+# (negative values are rejected)" must NOT match: that is the model reading the
+# guard correctly, and an earlier, looser version of these patterns scored it
+# as backwards.
+inverted = [
+  '(indices|index|values)[^.]{0,25}(>|greater than|above)\s*8[^.]{0,25}(are |is )?(accept|allow|permit)',
+  '(accept|allow|permit)[a-z]*[^.]{0,25}(only )?(indices|index|values)?[^.]{0,15}(>|greater than|above)\s*8',
+  '(<=|less than or equal to|at or below)\s*8\s*(are |is |get |gets )?(reject|refus|denied|treated as (an )?error|out of range)',
+  'bounds check is inverted',
+  '(bounds |range )?check is reversed',
+  'logic is (inverted|reversed|backwards)',
+]
+expected = "usually wrong: inverted or cleared"
